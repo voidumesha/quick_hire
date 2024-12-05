@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "348971831378",
+    "project_id": "quickhire-278ef",
+    "storage_bucket": "quickhire-278ef.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348971831378:android:631fe30d0b517d4b7d0f8b",
+        "android_client_info": {
+          "package_name": "com.example.quick_hire"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "348971831378-v0cl4nkbh190t2tv0ngp9ltcjm80dsj0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgk-MflVtSjEJK3dQ4fqFxtnlfnpthYjQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "348971831378-v0cl4nkbh190t2tv0ngp9ltcjm80dsj0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
