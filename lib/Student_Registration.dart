@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'FirebaseService.dart';
 
 class StudentRegistration extends StatefulWidget {
+  const StudentRegistration({super.key});
+
   @override
   _StudentRegistrationState createState() => _StudentRegistrationState();
 }
@@ -28,7 +30,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
           _usernameController.text.trim(),
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration successful!')),
+          const SnackBar(content: Text('Registration successful!')),
         );
         Navigator.pop(context);
       } catch (e) {
@@ -54,7 +56,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
             Container(
               height: 200,
               width: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Colors.blueAccent, Colors.lightBlue],
                   begin: Alignment.topLeft,
@@ -63,7 +65,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                 borderRadius:
                     BorderRadius.vertical(bottom: Radius.circular(50)),
               ),
-              child: Center(
+              child: const Center(
                 child: Text(
                   "Student Registration",
                   style: TextStyle(
@@ -74,7 +76,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                 ),
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             // Form Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -87,7 +89,7 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                       controller: _usernameController,
                       decoration: InputDecoration(
                         labelText: "Username",
-                        prefixIcon: Icon(Icons.person, color: Colors.blue),
+                        prefixIcon: const Icon(Icons.person, color: Colors.blue),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -99,14 +101,14 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     // Email Field
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: "Email",
-                        prefixIcon: Icon(Icons.email, color: Colors.blue),
+                        prefixIcon: const Icon(Icons.email, color: Colors.blue),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -121,14 +123,14 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     // Password Field
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: "Password",
-                        prefixIcon: Icon(Icons.lock, color: Colors.blue),
+                        prefixIcon: const Icon(Icons.lock, color: Colors.blue),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -142,22 +144,22 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     // Register Button
                     _isLoading
-                        ? CircularProgressIndicator()
+                        ? const CircularProgressIndicator()
                         : SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: _registerStudent,
                               style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 15),
+                                padding: const EdgeInsets.symmetric(vertical: 15),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 backgroundColor: Colors.blueAccent,
                               ),
-                              child: Text(
+                              child: const Text(
                                 "Register",
                                 style: TextStyle(
                                   fontSize: 18,
@@ -166,17 +168,17 @@ class _StudentRegistrationState extends State<StudentRegistration> {
                               ),
                             ),
                           ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     // Already have an account?
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Already have an account? "),
+                        const Text("Already have an account? "),
                         GestureDetector(
                           onTap: () {
                             Navigator.pop(context);
                           },
-                          child: Text(
+                          child: const Text(
                             "Login",
                             style: TextStyle(
                               color: Colors.blue,

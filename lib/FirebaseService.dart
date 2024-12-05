@@ -20,7 +20,7 @@ class FirebaseService {
       });
       return userCredential.user;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -39,7 +39,7 @@ class FirebaseService {
       });
       return userCredential.user;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -50,7 +50,7 @@ class FirebaseService {
           email: email, password: password);
       return userCredential.user;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }
