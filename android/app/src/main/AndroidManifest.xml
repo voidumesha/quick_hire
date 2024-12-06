@@ -1,7 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-package="com.example.quick_hire">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="quick_hire"
+        android:label="quickhire"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

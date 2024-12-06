@@ -1,4 +1,4 @@
-# quick_hire
+# quickhire
 
 A new Flutter project.
 

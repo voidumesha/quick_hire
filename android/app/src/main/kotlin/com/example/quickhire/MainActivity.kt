@@ -1,4 +1,4 @@
-package com.example.quick_hire
+package com.example.quickhire
 
 import io.flutter.embedding.android.FlutterActivity
 
