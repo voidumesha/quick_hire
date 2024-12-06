@@ -3,12 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 
-class company_dashboard extends StatelessWidget {
+class CompanyDashboard extends StatelessWidget {
+  final FirebaseAuth auth = FirebaseAuth.instance;
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;
+
+  CompanyDashboard({super.key});
+
+  // Function to handle logout
+  void _logout(BuildContext context) async {
+    await auth.signOut();
+    Navigator.pushReplacementNamed(
+        context, '/login'); // Replace '/login' with your login route
+  }
 
   Future<void> postJob() async {
     try {
@@ -16,9 +29,22 @@ class company_dashboard extends StatelessWidget {
       String imageUrl = '';
 
       if (image != null) {
-        final ref = storage.ref().child('jobs/${image.name}');
-        await ref.putFile(File(image.path));
-        imageUrl = await ref.getDownloadURL();
+        final cloudinaryUrl =
+            Uri.parse('https://api.cloudinary.com/v1_1/dzkqsyeeh/image/upload');
+
+        final request = http.MultipartRequest('POST', cloudinaryUrl)
+          ..fields['upload_preset'] =
+              'quick_hire_preset' // Set up an unsigned preset in Cloudinary
+          ..files.add(await http.MultipartFile.fromPath('file', image.path));
+
+        final response = await request.send();
+        if (response.statusCode == 200) {
+          final responseBody = await response.stream.bytesToString();
+          final jsonResponse = jsonDecode(responseBody);
+          imageUrl = jsonResponse['secure_url'];
+        } else {
+          throw Exception("Failed to upload image to Cloudinary");
+        }
       }
 
       await firestore.collection('jobs').add({
@@ -37,23 +63,58 @@ class company_dashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Post a Job")),
+      appBar: AppBar(
+        title: const Text("Post a Job"),
+        centerTitle: true,
+        actions: [
+          // Logout Button
+          IconButton(
+            onPressed: () => _logout(context),
+            icon: const Icon(Icons.logout),
+            tooltip: "Logout",
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Job Title Input
             TextField(
               controller: titleController,
-              decoration: InputDecoration(labelText: "Job Title"),
+              decoration: const InputDecoration(
+                labelText: "Job Title",
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
             ),
+            const SizedBox(height: 16),
+
+            // Job Description Input
             TextField(
               controller: descriptionController,
-              decoration: InputDecoration(labelText: "Job Description"),
+              decoration: const InputDecoration(
+                labelText: "Job Description",
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              maxLines: 5,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
+
+            // Post Job Button
             ElevatedButton(
               onPressed: postJob,
-              child: Text("Post Job"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent, // Button color
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              child: const Text("Post Job"),
             ),
           ],
         ),

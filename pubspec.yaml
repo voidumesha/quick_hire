@@ -35,6 +35,9 @@ dependencies:
   cloud_firestore: ^5.5.1
   image_picker: ^0.8.4+4
   firebase_storage: ^12.3.7
+  cloudinary_dart: ^0.0.11
+  cloudinary_api: ^1.0.0
+  http: ^1.2.2
 
 
 
