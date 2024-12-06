@@ -18,7 +18,21 @@ class _RegisterPageState extends State<RegisterPage> {
   String _userType = 'student'; // Default selection
   bool _isLoading = false;
 
+  bool validateInputs() {
+    if (_usernameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('All fields are required')),
+      );
+      return false;
+    }
+    return true;
+  }
+
   Future<void> registerUser() async {
+    if (!validateInputs()) return;
+
     setState(() {
       _isLoading = true;
     });

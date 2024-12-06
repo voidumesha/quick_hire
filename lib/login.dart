@@ -42,6 +42,7 @@ class _LoginPageState extends State<LoginPage> {
         } else if (userType == 'company') {
           Navigator.pushReplacementNamed(context, '/company_dashboard');
         } else {
+          
           throw Exception('Unknown user type');
         }
       } else {

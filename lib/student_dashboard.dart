@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class JobListingPage extends StatelessWidget {
+class student_dashboard extends StatelessWidget {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   @override
@@ -9,7 +9,10 @@ class JobListingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text("Job Listings")),
       body: StreamBuilder<QuerySnapshot>(
-        stream: firestore.collection('jobs').orderBy('createdAt', descending: true).snapshots(),
+        stream: firestore
+            .collection('jobs')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
