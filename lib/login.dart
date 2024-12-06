@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -67,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
             Container(
               height: 300,
               width: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Colors.blueAccent, Colors.lightBlue],
                   begin: Alignment.topLeft,
@@ -77,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                   bottom: Radius.circular(50),
                 ),
               ),
-              child: Center(
+              child: const Center(
                 child: Text(
                   "Quick Hire",
                   style: TextStyle(
@@ -88,14 +90,14 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             // Login Form
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "Login",
                     style: TextStyle(
                       fontSize: 24,
@@ -103,33 +105,33 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.blueAccent,
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   // Email Field
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       labelText: "Email",
-                      prefixIcon: Icon(Icons.email, color: Colors.blueAccent),
+                      prefixIcon: const Icon(Icons.email, color: Colors.blueAccent),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   // Password Field
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: "Password",
-                      prefixIcon: Icon(Icons.lock, color: Colors.blueAccent),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.blueAccent),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   // Login Button
                   Center(
                     child: SizedBox(
@@ -137,17 +139,17 @@ class _LoginPageState extends State<LoginPage> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : login,
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 15),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                           backgroundColor: Colors.blueAccent,
                         ),
                         child: _isLoading
-                            ? CircularProgressIndicator(
+                            ? const CircularProgressIndicator(
                                 color: Colors.white,
                               )
-                            : Text(
+                            : const Text(
                                 "Login",
                                 style: TextStyle(
                                   fontSize: 18,
@@ -157,17 +159,17 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   // Registration Prompt
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account? "),
+                      const Text("Don't have an account? "),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushNamed(context, '/register');
                         },
-                        child: Text(
+                        child: const Text(
                           "Register",
                           style: TextStyle(
                             color: Colors.blueAccent,
