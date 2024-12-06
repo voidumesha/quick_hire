@@ -1,52 +1,49 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
-
+class RegisterPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  String _userType = 'student'; // Default selection
   bool _isLoading = false;
 
-  Future<void> login() async {
+  Future<void> registerUser() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Authenticate user
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      // Create user in Firebase Authentication
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // Check user type from Firestore
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
+      // Store additional user details in Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'username': _usernameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'userType': _userType,
+      });
 
-      if (userDoc.exists) {
-        final userType = userDoc['userType'];
-        if (userType == 'student') {
-          Navigator.pushReplacementNamed(context, '/student_dashboard');
-        } else if (userType == 'company') {
-          Navigator.pushReplacementNamed(context, '/company_dashboard');
-        } else {
-          throw Exception('Unknown user type');
-        }
-      } else {
-        throw Exception('User data not found');
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration successful! Please login.')),
+      );
+
+      // Navigate to login page
+      Navigator.pushReplacementNamed(context, '/');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -69,9 +66,9 @@ class _LoginPageState extends State<LoginPage> {
             Container(
               height: 300,
               width: double.infinity,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blueAccent, Colors.lightBlue],
+                  colors: [Colors.greenAccent, Colors.teal],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -79,9 +76,9 @@ class _LoginPageState extends State<LoginPage> {
                   bottom: Radius.circular(50),
                 ),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  "Quick Hire",
+                  "Register",
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -90,69 +87,95 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 30),
-            // Login Form
+            SizedBox(height: 30),
+            // Registration Form
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Login",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent,
+                  // Username Field
+                  TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: "Username",
+                      prefixIcon: Icon(Icons.person, color: Colors.teal),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   // Email Field
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       labelText: "Email",
-                      prefixIcon:
-                          const Icon(Icons.email, color: Colors.blueAccent),
+                      prefixIcon: Icon(Icons.email, color: Colors.teal),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   // Password Field
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: "Password",
-                      prefixIcon:
-                          const Icon(Icons.lock, color: Colors.blueAccent),
+                      prefixIcon: Icon(Icons.lock, color: Colors.teal),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  // Login Button
+                  SizedBox(height: 20),
+                  // User Type Selector
+                  Row(
+                    children: [
+                      Text("Register as: "),
+                      DropdownButton<String>(
+                        value: _userType,
+                        items: [
+                          DropdownMenuItem(
+                            child: Text("Student"),
+                            value: 'student',
+                          ),
+                          DropdownMenuItem(
+                            child: Text("Company"),
+                            value: 'company',
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _userType = value!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 30),
+                  // Register Button
                   Center(
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : login,
+                        onPressed: _isLoading ? null : registerUser,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          padding: EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          backgroundColor: Colors.blueAccent,
+                          backgroundColor: Colors.teal,
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator(
+                            ? CircularProgressIndicator(
                                 color: Colors.white,
                               )
-                            : const Text(
-                                "Login",
+                            : Text(
+                                "Register",
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.white,
@@ -161,20 +184,20 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  // Registration Prompt
+                  SizedBox(height: 20),
+                  // Already have an account?
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Don't have an account? "),
+                      Text("Already have an account? "),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, '/register');
+                          Navigator.pushReplacementNamed(context, '/');
                         },
-                        child: const Text(
-                          "Register",
+                        child: Text(
+                          "Login",
                           style: TextStyle(
-                            color: Colors.blueAccent,
+                            color: Colors.teal,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
