@@ -6,21 +6,19 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CompanyDashboard extends StatelessWidget {
   final FirebaseAuth auth = FirebaseAuth.instance;
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final FirebaseStorage storage = FirebaseStorage.instance;
 
   CompanyDashboard({super.key});
 
-  // Function to handle logout
   void _logout(BuildContext context) async {
     await auth.signOut();
-    Navigator.pushReplacementNamed(
-        context, '/login'); // Replace '/login' with your login route
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   Future<void> postJob() async {
@@ -33,8 +31,7 @@ class CompanyDashboard extends StatelessWidget {
             Uri.parse('https://api.cloudinary.com/v1_1/dzkqsyeeh/image/upload');
 
         final request = http.MultipartRequest('POST', cloudinaryUrl)
-          ..fields['upload_preset'] =
-              'quick_hire_preset' // Set up an unsigned preset in Cloudinary
+          ..fields['upload_preset'] = 'quick_hire_preset'
           ..files.add(await http.MultipartFile.fromPath('file', image.path));
 
         final response = await request.send();
@@ -60,14 +57,79 @@ class CompanyDashboard extends StatelessWidget {
     }
   }
 
+  void viewCVs(BuildContext context, String jobId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Submitted CVs"),
+          content: StreamBuilder<QuerySnapshot>(
+            stream: firestore
+                .collection('job_applications')
+                .where('jobId', isEqualTo: jobId)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text("No CVs submitted yet."));
+              }
+
+              final applications = snapshot.data!.docs;
+
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: applications.length,
+                itemBuilder: (context, index) {
+                  final app =
+                      applications[index].data() as Map<String, dynamic>;
+
+                  return ListTile(
+                    title: Text("Student ID: ${app['studentId']}"),
+                    subtitle: app['cvUrl'] != null
+                        ? InkWell(
+                            onTap: () {
+                              // Open the CV URL in a browser
+                              launchUrl(Uri.parse(app['cvUrl']));
+                            },
+                            child: const Text(
+                              "View CV",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          )
+                        : const Text("No CV uploaded"),
+                  );
+                },
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Post a Job"),
+        title: const Text("Company Dashboard"),
+        titleTextStyle: const TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black),
         centerTitle: true,
         actions: [
-          // Logout Button
           IconButton(
             onPressed: () => _logout(context),
             icon: const Icon(Icons.logout),
@@ -79,42 +141,70 @@ class CompanyDashboard extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Job Title Input
             TextField(
               controller: titleController,
               decoration: const InputDecoration(
                 labelText: "Job Title",
                 border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
             const SizedBox(height: 16),
-
-            // Job Description Input
             TextField(
               controller: descriptionController,
               decoration: const InputDecoration(
                 labelText: "Job Description",
                 border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               maxLines: 5,
             ),
             const SizedBox(height: 20),
-
-            // Post Job Button
             ElevatedButton(
               onPressed: postJob,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent, // Button color
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                textStyle:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
               child: const Text("Post Job"),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: firestore
+                    .collection('jobs')
+                    .orderBy('createdAt', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text("No jobs posted yet."));
+                  }
+
+                  final jobs = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    itemCount: jobs.length,
+                    itemBuilder: (context, index) {
+                      final job = jobs[index];
+                      final jobData = job.data() as Map<String, dynamic>;
+                      final jobId = job.id;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: ListTile(
+                          title: Text(jobData['title']),
+                          subtitle: Text(jobData['description']),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.folder_open),
+                            onPressed: () => viewCVs(context, jobId),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
