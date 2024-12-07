@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
-import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -139,7 +137,7 @@ class CompanyDashboard extends StatelessWidget {
                           );
                         },
                       ),
-                      title: Text("Student Name: ${app['username']}"),
+                      title: Text("Student Name: ${app['username']} "),
                       subtitle: app['cvUrl'] != null
                           ? InkWell(
                               onTap: () {
@@ -175,24 +173,39 @@ class CompanyDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Company Dashboard"),
-        titleTextStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-          color: Colors.black,
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () => _logout(context),
-            icon: SizedBox(
-              width: 30,
-              height: 30,
-              child: Image.asset('assets/logout.png'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(150),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF42A5F5), Color(0xFF1976D2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-        ],
+          child: SafeArea(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    "Company Dashboard",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _logout(context),
+                  icon: const Icon(Icons.logout, color: Colors.white, size: 28),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -201,28 +214,79 @@ class CompanyDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: "Job Title",
-                    border: OutlineInputBorder(),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Post a New Job",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: titleController,
+                          decoration: const InputDecoration(
+                            labelText: "Job Title",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: descriptionController,
+                          decoration: const InputDecoration(
+                            labelText: "Job Description",
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 5,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => postJob(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 20),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.post_add, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                "Post Job",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: "Job Description",
-                    border: OutlineInputBorder(),
+                const SizedBox(height: 20),
+                const Text(
+                  "Posted Jobs",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  maxLines: 5,
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => postJob(context),
-                  child: const Text("Post Job"),
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 StreamBuilder<QuerySnapshot>(
                   stream: firestore
                       .collection('jobs')
@@ -242,8 +306,7 @@ class CompanyDashboard extends StatelessWidget {
                     final jobs = snapshot.data!.docs;
 
                     return ListView.builder(
-                      shrinkWrap:
-                          true, // Prevent RenderShrinkWrappingViewport issue
+                      shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: jobs.length,
                       itemBuilder: (context, index) {
@@ -252,13 +315,45 @@ class CompanyDashboard extends StatelessWidget {
                         final jobId = job.id;
 
                         return Card(
+                          elevation: 3,
                           margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
+                            horizontal: 0,
                             vertical: 8,
                           ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           child: ListTile(
-                            title: Text(jobData['title']),
-                            subtitle: Text(jobData['description']),
+                            contentPadding: const EdgeInsets.all(16),
+                            leading: jobData['imageUrl'] != null &&
+                                    jobData['imageUrl'].isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      jobData['imageUrl'],
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.work,
+                                    size: 40,
+                                    color: Colors.blueAccent,
+                                  ),
+                            title: Text(
+                              jobData['title'],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              jobData['description'],
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
                             trailing: IconButton(
                               icon: const Icon(Icons.folder_open),
                               onPressed: () => viewCVs(context, jobId),

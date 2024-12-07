@@ -17,46 +17,69 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isLoading = false;
 
-  Future<void> login() async {
-    setState(() {
-      _isLoading = true;
-    });
+Future<void> login() async {
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      // Authenticate user
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+  try {
+    // Authenticate user
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
 
-      // Check user type from Firestore
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
+    // Check user type from Firestore
+    final userDoc = await _firestore
+        .collection('users')
+        .doc(userCredential.user!.uid)
+        .get();
 
-      if (userDoc.exists) {
-        final userType = userDoc['userType'];
-        if (userType == 'student') {
-          Navigator.pushReplacementNamed(context, '/student_dashboard');
-        } else if (userType == 'company') {
-          Navigator.pushReplacementNamed(context, '/company_dashboard');
-        } else {
-          throw Exception('Unknown user type');
-        }
-      } else {
-        throw Exception('User data not found');
-      }
-    } catch (e) {
+    if (userDoc.exists) {
+      final userType = userDoc['userType'];
+
+      // Show success SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        const SnackBar(
+          content: Text(
+            'Successfully logged in!',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.lightGreen,
+          duration: Duration(seconds: 2),
+        ),
       );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+
+      // Navigate based on user type
+      if (userType == 'student') {
+        Navigator.pushReplacementNamed(context, '/student_dashboard');
+      } else if (userType == 'company') {
+        Navigator.pushReplacementNamed(context, '/company_dashboard');
+      } else {
+        throw Exception('Unknown user type');
+      }
+    } else {
+      throw Exception('User data not found');
     }
+  } catch (e) {
+    // Show failure SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Invalid user credentials!',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.redAccent,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                       labelText: "Password",
                       prefixIcon:
                           const Icon(Icons.lock, color: Colors.blueAccent),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

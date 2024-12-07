@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class StudentRegisterPage extends StatefulWidget {
+  const StudentRegisterPage({super.key});
+
   @override
   _StudentRegisterPageState createState() => _StudentRegisterPageState();
 }
@@ -42,7 +44,7 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Student registered successfully!'),
           backgroundColor: Colors.green,
         ),

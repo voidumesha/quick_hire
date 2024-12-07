@@ -17,20 +17,23 @@ class StudentDashboard extends StatelessWidget {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
-Future<String> _getUsername() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    return 'Unknown User';
-  }
+  Future<String> _getUsername() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return 'Unknown User';
+    }
 
-  final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-  if (userDoc.exists) {
-    return userDoc['username'] ?? 'Unknown User';
-  } else {
-    print("User document not found.");
-    return 'Unknown User';
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    if (userDoc.exists) {
+      return userDoc['username'] ?? 'Unknown User';
+    } else {
+      print("User document not found.");
+      return 'Unknown User';
+    }
   }
-}
 
   Future<void> uploadCV(String jobId, BuildContext context) async {
     try {
@@ -100,24 +103,45 @@ Future<String> _getUsername() async {
   @override
   Widget build(BuildContext context) {
     final user = auth.currentUser;
-    final profileImage = user?.photoURL ??
-        "https://media.istockphoto.com/id/1437816897/photo/business-woman-manager-or-human-resources-portrait-for-career-success-company-we-are-hiring.jpg?s=1024x1024&w=is&k=20&c=iGtRKCTRSvPVl3eOIpzzse5SvQFfImkV0TZuFh-74ps=";
+
+    final profileImage = user?.photoURL != null
+        ? NetworkImage(user!.photoURL!)
+        : const AssetImage("assets/profile.png");
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Student Dashboard"),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () => _logout(context),
-            icon: SizedBox(
-              width: 30,
-              height: 30,
-              child: Image.asset('assets/logout.png'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(150),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF42A5F5), Color(0xFF1976D2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            tooltip: "Logout",
           ),
-        ],
+          child: SafeArea(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    "Student Dashboard",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _logout(context),
+                  icon: const Icon(Icons.logout, color: Colors.white, size: 28),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -128,7 +152,9 @@ Future<String> _getUsername() async {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(profileImage),
+                  backgroundImage: profileImage is String
+                      ? AssetImage(profileImage)
+                      : profileImage as ImageProvider<Object>?,
                 ),
                 const SizedBox(width: 16),
                 FutureBuilder<String>(
@@ -169,16 +195,16 @@ Future<String> _getUsername() async {
                           Text(
                             snapshot.data!,
                             style: const TextStyle(
-                              color: Colors.black,
+                              color: Color.fromARGB(255, 58, 57, 57),
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       );
                     } else {
                       return const Text(
-                        "Silva !",
+                        "Unknown User",
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 20,
@@ -251,10 +277,46 @@ Future<String> _getUsername() async {
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(color: Colors.grey),
                             ),
-                            Text(
-                              'Upload Your CV ${jobData['username'] ?? "Silva !"}',
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 14),
+                            FutureBuilder<String>(
+                              future: _getUsername(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Text(
+                                    "Loading...",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                    ),
+                                  );
+                                }
+                                if (snapshot.hasError) {
+                                  return const Text(
+                                    "Error fetching username",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                    ),
+                                  );
+                                }
+                                if (snapshot.hasData) {
+                                  return Text(
+                                    'Upload Your CV to here ${snapshot.data!}',
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                    ),
+                                  );
+                                } else {
+                                  return const Text(
+                                    "Unknown User",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                    ),
+                                  );
+                                }
+                              },
                             ),
                           ],
                         ),
