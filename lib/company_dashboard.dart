@@ -108,32 +108,32 @@ class CompanyDashboard extends StatelessWidget {
                 final applications = snapshot.data!.docs;
 
                 return ListView.builder(
-                  shrinkWrap: true, // Prevents unbounded height
+                  shrinkWrap: true,
                   itemCount: applications.length,
                   itemBuilder: (context, index) {
                     final app =
                         applications[index].data() as Map<String, dynamic>;
 
                     return ListTile(
-                      leading: FutureBuilder<DocumentSnapshot>(
+                      leading: FutureBuilder<QuerySnapshot>(
                         future: firestore
-                            .collection('students')
-                            .doc(app['username'])
+                            .collection('users')
+                            .where('username', isEqualTo: app['username'])
+                            .limit(1)
                             .get(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const CircularProgressIndicator();
                           }
-                          if (snapshot.hasError) {
-                            return const Icon(Icons.error);
-                          }
-                          if (!snapshot.hasData || !snapshot.data!.exists) {
+                          if (snapshot.hasError ||
+                              !snapshot.hasData ||
+                              snapshot.data!.docs.isEmpty) {
                             return const Icon(Icons.person);
                           }
 
-                          final studentData =
-                              snapshot.data!.data() as Map<String, dynamic>;
+                          final studentData = snapshot.data!.docs.first.data()
+                              as Map<String, dynamic>;
                           return CircleAvatar(
                             child: Text(studentData['name'][0]),
                           );
@@ -186,8 +186,11 @@ class CompanyDashboard extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () => _logout(context),
-            icon: const Icon(Icons.logout),
-            tooltip: "Logout",
+            icon: SizedBox(
+              width: 30,
+              height: 30,
+              child: Image.asset('assets/logout.png'),
+            ),
           ),
         ],
       ),

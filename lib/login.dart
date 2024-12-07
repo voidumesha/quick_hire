@@ -114,6 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                       labelText: "Email",
                       prefixIcon:
                           const Icon(Icons.email, color: Colors.blueAccent),
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -128,6 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                       labelText: "Password",
                       prefixIcon:
                           const Icon(Icons.lock, color: Colors.blueAccent),
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
