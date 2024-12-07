@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 
 class StudentDashboard extends StatelessWidget {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -17,53 +17,96 @@ class StudentDashboard extends StatelessWidget {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
-  Future<void> uploadCV(String jobId) async {
+  Future<String> _getUsername() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'], // Only allow PDFs
-      );
+      User? user = auth.currentUser;
+      if (user != null) {
+        // Use the user's email to query the users collection
+        DocumentSnapshot userDoc = await firestore
+            .collection('users')
+            .where('email', isEqualTo: user.email)
+            .limit(1)
+            .get()
+            .then((querySnapshot) => querySnapshot.docs.first);
 
-      if (result != null) {
-        final file = result.files.single;
-        final fileName = file.name;
-        final fileBytes = file.bytes;
-
-        if (fileBytes != null) {
-          final cloudinaryUrl =
-              Uri.parse('https://api.cloudinary.com/v1_1/dzkqsyeeh/upload');
-
-          final request = http.MultipartRequest('POST', cloudinaryUrl)
-            ..fields['upload_preset'] = 'quick_hire_preset'
-            ..fields['folder'] = 'student_cvs'
-            ..files.add(http.MultipartFile.fromBytes(
-              'file',
-              fileBytes,
-              filename: fileName,
-              contentType: MediaType('application', 'pdf'),
-            ));
-
-          final response = await request.send();
-          if (response.statusCode == 200) {
-            final responseBody = await response.stream.bytesToString();
-            final jsonResponse = jsonDecode(responseBody);
-            final fileUrl = jsonResponse['secure_url'];
-
-            await firestore.collection('job_applications').add({
-              'jobId': jobId,
-              'studentId': auth.currentUser?.uid,
-              'cvUrl': fileUrl,
-              'uploadedAt': FieldValue.serverTimestamp(),
-            });
-
-            print("CV uploaded successfully!");
-          } else {
-            throw Exception("Failed to upload CV to Cloudinary.");
-          }
+        if (userDoc.exists) {
+          return userDoc['username'] ?? 'Unknown User';
+        } else {
+          print("User document not found.");
+          return 'Unknown User';
         }
+      } else {
+        print("User not authenticated.");
+        return 'Unknown User';
       }
     } catch (e) {
-      print("Error uploading CV: $e");
+      print("Error fetching username: $e");
+      return 'Unknown User';
+    }
+  }
+
+  Future<void> uploadCV(String jobId, BuildContext context) async {
+    try {
+      // Open image picker for the user to select an image
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+      if (image != null) {
+        // Cloudinary URL for image upload
+        final cloudinaryUrl =
+            Uri.parse('https://api.cloudinary.com/v1_1/dzkqsyeeh/image/upload');
+
+        // Create a multipart request
+        final request = http.MultipartRequest('POST', cloudinaryUrl)
+          ..fields['upload_preset'] = 'quick_hire_preset'
+          ..fields['folder'] = 'job_images/student_cvs'
+          ..files.add(await http.MultipartFile.fromPath('file', image.path));
+
+        // Send the request
+        final response = await request.send();
+
+        if (response.statusCode == 200) {
+          final responseBody = await response.stream.bytesToString();
+          final jsonResponse = jsonDecode(responseBody);
+          final fileUrl =
+              jsonResponse['secure_url']; // File URL from Cloudinary
+
+          // Get the current username from the users collection
+          String username = await _getUsername();
+          print("User: ${auth.currentUser}");
+          print("Username: $username");
+          print("Saving CV with username: $username");
+
+          // Save the file URL, username, and related data in Firestore
+          await firestore.collection('job_applications').add({
+            'jobId': jobId,
+            'username': username,
+            'cvUrl': fileUrl,
+            'uploadedAt': FieldValue.serverTimestamp()
+          });
+
+          print("CV uploaded successfully: $fileUrl");
+
+          // Show a success message and navigate back to the dashboard
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('CV uploaded successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate back to the previous screen (StudentDashboard)
+          Navigator.pop(context);
+        } else {
+          final responseBody = await response.stream.bytesToString();
+          print(
+              "Cloudinary upload failed: ${response.statusCode}, $responseBody");
+          throw Exception("Failed to upload CV to Cloudinary.");
+        }
+      } else {
+        print("No image selected for upload.");
+      }
+    } catch (e) {
+      print("Error during CV upload: $e");
     }
   }
 
@@ -81,7 +124,8 @@ class StudentDashboard extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () => _logout(context),
-            icon: const Icon(Icons.logout),
+            icon: Image.asset('assets/logout.png'),
+            
             tooltip: "Logout",
           ),
         ],
@@ -173,11 +217,21 @@ class StudentDashboard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        subtitle: Text(
-                          jobData['description'],
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.grey),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              jobData['description'],
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            Text(
+                              'Applied by: ${jobData['username'] ?? "Unknown"}', // Display the username
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 14),
+                            ),
+                          ],
                         ),
                         onTap: () {
                           showDialog(
@@ -188,36 +242,25 @@ class StudentDashboard extends StatelessWidget {
                                 content: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    if (jobData['imageUrl'] != null &&
-                                        jobData['imageUrl'].isNotEmpty)
-                                      Image.network(
-                                        jobData['imageUrl'],
-                                        height: 350,
-                                        fit: BoxFit.cover,
-                                      ),
+                                    Text(
+                                      jobData['description'],
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
                                     const SizedBox(height: 10),
-                                    Text(jobData['description']),
-                                    const SizedBox(height: 50),
                                     ElevatedButton(
-                                      onPressed: () async {
-                                        await uploadCV(jobId);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'CV uploaded successfully!'),
-                                            backgroundColor: Colors.green,
-                                          ),
-                                        );
+                                      onPressed: () {
+                                        uploadCV(jobId, context);
                                       },
-                                      child: const Text("Submit CV"),
+                                      child: const Text('Upload CV'),
                                     ),
                                   ],
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text("Close"),
+                                    child: const Text('Close'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
                                   ),
                                 ],
                               );
