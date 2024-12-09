@@ -83,55 +83,64 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Username Field
             TextField(
               controller: usernameController,
               decoration: const InputDecoration(
                 labelText: "Username", // Placeholder text
-                floatingLabelBehavior:
-                    FloatingLabelBehavior.never, // Keeps label inside
-                border: OutlineInputBorder(), // Adds border
+                floatingLabelBehavior: FloatingLabelBehavior.never,
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 10),
+
+            // Email Field
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
                 labelText: "Email", // Placeholder text
-                floatingLabelBehavior:
-                    FloatingLabelBehavior.never, // Keeps label inside
-                border: OutlineInputBorder(), // Adds border
+                floatingLabelBehavior: FloatingLabelBehavior.never,
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 10),
+
+            // Password Field
             TextField(
               controller: passwordController,
+              obscureText:
+                  !_isPasswordVisible, // Link obscureText to visibility state
               decoration: InputDecoration(
+                labelText: "Password", // Placeholder text
+                floatingLabelBehavior: FloatingLabelBehavior.never,
+                border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                        ? Icons.visibility // If visible
+                        : Icons.visibility_off, // If hidden
                   ),
                   onPressed: () {
                     setState(() {
-                      _isPasswordVisible = !_isPasswordVisible;
+                      _isPasswordVisible =
+                          !_isPasswordVisible; // Toggle password visibility
                     });
                   },
                 ),
-                labelText: "Password", // Placeholder text
-                floatingLabelBehavior:
-                    FloatingLabelBehavior.never, // Keeps label inside
-                border: const OutlineInputBorder(), // Adds border
               ),
-              obscureText: true, // Hides the text for password
             ),
             const SizedBox(height: 20),
+
+            // Register Button or Loading Indicator
             isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : SizedBox(
-                    width: double.infinity, // Make the button full-width
+                    width: double.infinity,
                     child: ElevatedButton(
                       onPressed: registerStudent,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
                       child: const Text("Register"),
                     ),
                   ),

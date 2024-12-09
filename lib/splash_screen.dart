@@ -39,8 +39,8 @@ class _SplashScreenState extends State<SplashScreen> {
               // App Logo
               Image.asset(
                 'assets/logo.jpg', // Replace with your app logo
-                width: 150,
-                height: 150,
+                width: 250,
+                height: 250,
               ),
               const SizedBox(height: 20),
               // App Name
