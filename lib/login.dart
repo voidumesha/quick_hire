@@ -16,70 +16,65 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
-Future<void> login() async {
-  setState(() {
-    _isLoading = true;
-  });
+  Future<void> login() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-  try {
-    // Authenticate user
-    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-    );
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-    // Check user type from Firestore
-    final userDoc = await _firestore
-        .collection('users')
-        .doc(userCredential.user!.uid)
-        .get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
 
-    if (userDoc.exists) {
-      final userType = userDoc['userType'];
+      if (userDoc.exists) {
+        final userType = userDoc['userType'];
 
-      // Show success SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Successfully logged in!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.lightGreen,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        if (userType == 'student') {
+          Navigator.pushReplacementNamed(context, '/student_dashboard');
+        } else if (userType == 'company') {
+          Navigator.pushReplacementNamed(context, '/company_dashboard');
+        } else {
+          throw Exception('Unknown user type');
+        }
+      } else {
+        throw Exception('User data not found');
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Successfully logged in!',
+            'Invalid user credentials!',
             style: TextStyle(color: Colors.white),
           ),
-          backgroundColor: Colors.lightGreen,
+          backgroundColor: Colors.redAccent,
           duration: Duration(seconds: 2),
         ),
       );
-
-      // Navigate based on user type
-      if (userType == 'student') {
-        Navigator.pushReplacementNamed(context, '/student_dashboard');
-      } else if (userType == 'company') {
-        Navigator.pushReplacementNamed(context, '/company_dashboard');
-      } else {
-        throw Exception('Unknown user type');
-      }
-    } else {
-      throw Exception('User data not found');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-  } catch (e) {
-    // Show failure SnackBar
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Invalid user credentials!',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.redAccent,
-        duration: Duration(seconds: 2),
-      ),
-    );
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +83,6 @@ Future<void> login() async {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header Section
             Container(
               height: 300,
               width: double.infinity,
@@ -114,7 +108,6 @@ Future<void> login() async {
               ),
             ),
             const SizedBox(height: 30),
-            // Login Form
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -129,7 +122,6 @@ Future<void> login() async {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Email Field
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -144,11 +136,23 @@ Future<void> login() async {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Password Field
                   TextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.blueAccent,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                       labelText: "Password",
                       prefixIcon:
                           const Icon(Icons.lock, color: Colors.blueAccent),
@@ -159,7 +163,6 @@ Future<void> login() async {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  // Login Button
                   Center(
                     child: SizedBox(
                       width: double.infinity,
@@ -187,7 +190,6 @@ Future<void> login() async {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Registration Prompt
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

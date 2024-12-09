@@ -14,6 +14,7 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   bool isLoading = false;
+  bool _isPasswordVisible = false;
 
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -24,18 +25,18 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
     });
 
     try {
+      // Create user with Firebase Auth
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      // Update the user's profile with the display name
+      // Update user profile with username
       await userCredential.user
           ?.updateProfile(displayName: usernameController.text.trim());
-      await userCredential.user
-          ?.reload(); // Reload the user to update the profile
+      await userCredential.user?.reload();
 
-      // Store additional data in Firestore
+      // Save user details to Firestore
       await firestore.collection('users').doc(userCredential.user!.uid).set({
         'username': usernameController.text.trim(),
         'email': emailController.text.trim(),
@@ -50,13 +51,10 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
         ),
       );
 
-      // Clear the input fields after successful registration
+      // Clear input fields
       emailController.clear();
       passwordController.clear();
       usernameController.clear();
-
-      // Navigate to the login or dashboard page (optional)
-      // Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,30 +75,65 @@ class _StudentRegisterPageState extends State<StudentRegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Student Registration")),
+      appBar: AppBar(
+        title: const Text("Student Registration"),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: usernameController,
-              decoration: const InputDecoration(labelText: "Username"),
+              decoration: const InputDecoration(
+                labelText: "Username", // Placeholder text
+                floatingLabelBehavior:
+                    FloatingLabelBehavior.never, // Keeps label inside
+                border: OutlineInputBorder(), // Adds border
+              ),
             ),
+            const SizedBox(height: 10),
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(
+                labelText: "Email", // Placeholder text
+                floatingLabelBehavior:
+                    FloatingLabelBehavior.never, // Keeps label inside
+                border: OutlineInputBorder(), // Adds border
+              ),
             ),
+            const SizedBox(height: 10),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
-              obscureText: true,
+              decoration: InputDecoration(
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                ),
+                labelText: "Password", // Placeholder text
+                floatingLabelBehavior:
+                    FloatingLabelBehavior.never, // Keeps label inside
+                border: const OutlineInputBorder(), // Adds border
+              ),
+              obscureText: true, // Hides the text for password
             ),
             const SizedBox(height: 20),
             isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: registerStudent,
-                    child: const Text("Register"),
+                ? const Center(child: CircularProgressIndicator())
+                : SizedBox(
+                    width: double.infinity, // Make the button full-width
+                    child: ElevatedButton(
+                      onPressed: registerStudent,
+                      child: const Text("Register"),
+                    ),
                   ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:quickhire/register.dart';
 import 'package:quickhire/student_dashboard.dart';
 import 'package:quickhire/company_dashboard.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,21 +26,23 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      // Check the user's authentication state and navigate accordingly
-      home: const AuthWrapper(),
+      // Set Splash Screen as the initial route
+      initialRoute: '/splash',
       routes: {
+        '/': (context) => const LoginPage(),
+        '/splash': (context) => const SplashScreen(), // Splash Screen
+        '/login': (context) => const LoginPage(), // Login Page
         '/register': (context) => const RegisterPage(), // Register Page
         '/student_dashboard': (context) =>
             StudentDashboard(), // Student Dashboard
         '/company_dashboard': (context) =>
             CompanyDashboard(), // Company Dashboard
-        '/login': (context) => const LoginPage(), // Login Page
       },
     );
   }
 }
 
-// AuthWrapper to determine initial route based on user authentication state
+// AuthWrapper to determine initial route after splash screen
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
