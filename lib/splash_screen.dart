@@ -38,16 +38,16 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               // App Logo
               Image.asset(
-                'assets/logo.jpg', // Replace with your app logo
+                'assets/logo.jpg',
                 width: 250,
                 height: 250,
               ),
               const SizedBox(height: 20),
               // App Name
               const Text(
-                "Quick Hire",
+                "Get started with quick hire",
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),

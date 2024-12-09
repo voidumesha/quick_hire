@@ -122,26 +122,15 @@ class StudentDashboard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset(
-                        'assets/studentDashboard.jpg',
-                        width: 300,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      ),
-                      const Text(
-                        "Student Dashboard",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    "Student Dashboard",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 IconButton(
